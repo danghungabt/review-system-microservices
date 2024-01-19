@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CategoryResponse {
     private Long id;
-    private String name;
-    private String code;
+    private String category;
+    private String slugCategory;
 }

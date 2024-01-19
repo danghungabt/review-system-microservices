@@ -59,7 +59,7 @@ public class ReviewService {
                     .block();
 
             log.info("Begin 3");
-            log.info(categoryResponse.getCode());
+            log.info(categoryResponse.getSlugCategory());
             if (categoryResponse != null) {
                 reviewRepository.save(review);
                 return "Review Was Posted Successfully";
@@ -159,7 +159,7 @@ public class ReviewService {
                 for (Review review : reviews){
                     int totalComment = commentRepository.findCommentByReviewId(review.getId()).size();
                     for (CategoryResponse categoryResponse : categoryResponses){
-                        if(review.getCategoryCode().equals(categoryResponse.getCode())){
+                        if(review.getCategoryCode().equals(categoryResponse.getSlugCategory())){
                             MiniBlogWithCategoryResponseModel temp = new MiniBlogWithCategoryResponseModel();
                             MiniBlogsResponseModel temp2 = new MiniBlogsResponseModel();
                             CategoriesResponseModel temp3 = new CategoriesResponseModel();
@@ -171,8 +171,8 @@ public class ReviewService {
                             temp2.setLinkImage(review.getLinkImage());
                             temp.setBlogsResponseModel(temp2);
                             temp3.setId(categoryResponse.getId());
-                            temp3.setCategory(categoryResponse.getName());
-                            temp3.setSlugCategory(categoryResponse.getCode());
+                            temp3.setCategory(categoryResponse.getCategory());
+                            temp3.setSlugCategory(categoryResponse.getSlugCategory());
                             temp.setCategoriesResponseModel(temp3);
                             temp.setTotalComment(totalComment);
                             miniBlogWithCategoryResponseModels.add(temp);
@@ -224,8 +224,8 @@ public class ReviewService {
             if (categoryResponse != null) {
                 blogsResponseModel.setCategoryId(categoryResponse.getId());
                 CategoriesResponseModel categoriesResponseModel = new CategoriesResponseModel();
-                categoriesResponseModel.setSlugCategory(categoryResponse.getCode());
-                categoriesResponseModel.setCategory(categoryResponse.getName());
+                categoriesResponseModel.setSlugCategory(categoryResponse.getSlugCategory());
+                categoriesResponseModel.setCategory(categoryResponse.getCategory());
                 categoriesResponseModel.setId(categoryResponse.getId());
                 result.setBlogsResponseModel(blogsResponseModel);
                 result.setCategoriesResponseModel(categoriesResponseModel);
