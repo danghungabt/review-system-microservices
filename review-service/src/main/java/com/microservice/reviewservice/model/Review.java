@@ -20,6 +20,7 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
+    @Column(name = "content", columnDefinition = "TEXT")
     private String content;
     private String createdBy;
     private String linkImage;
