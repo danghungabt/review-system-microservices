@@ -1,6 +1,7 @@
 package com.microservice.reviewservice.controller;
 
 import com.microservice.reviewservice.dto.*;
+import com.microservice.reviewservice.dto.response.BlogWithCategoryResponseModel;
 import com.microservice.reviewservice.dto.response.MiniBlogWithCategoryResponseModel;
 import com.microservice.reviewservice.service.ReviewService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -46,6 +47,12 @@ public class ReviewController {
         return reviewService.findAllComment();
     }
 
+    @GetMapping("/findOne")
+    @ResponseStatus(HttpStatus.OK)
+    public BlogWithCategoryResponseModel BlogWithCategoryResponseModel(@RequestParam String slugBlog){
+        return reviewService.findOneBySlugClientPlus(slugBlog);
+    }
+
     @GetMapping("/client")
     @ResponseStatus(HttpStatus.OK)
 //    @CircuitBreaker(name = "category")
@@ -55,6 +62,7 @@ public class ReviewController {
                                                                                         @RequestParam int page){
         return reviewService.findAllClientWithPageablePlus(params, page);
     }
+
     @GetMapping("/{reviewId}")
     @ResponseStatus(HttpStatus.OK)
     public ReviewResponse findOndById(@PathVariable Long reviewId){

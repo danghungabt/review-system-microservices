@@ -3,9 +3,7 @@ package com.microservice.reviewservice.service;
 import brave.Span;
 import brave.Tracer;
 import com.microservice.reviewservice.dto.*;
-import com.microservice.reviewservice.dto.response.CategoriesResponseModel;
-import com.microservice.reviewservice.dto.response.MiniBlogWithCategoryResponseModel;
-import com.microservice.reviewservice.dto.response.MiniBlogsResponseModel;
+import com.microservice.reviewservice.dto.response.*;
 import com.microservice.reviewservice.model.Comment;
 import com.microservice.reviewservice.model.Review;
 import com.microservice.reviewservice.paging.PageRequest;
@@ -189,9 +187,56 @@ public class ReviewService {
         } finally {
             inventoryServiceLookup.flush();
         }
-
-
         return result;
+    }
+
+    public BlogWithCategoryResponseModel findOneBySlugClientPlus(String slugBlog) {
+        Long id = Long.parseLong(slugBlog);
+
+        Review review = reviewRepository.findById(id).get();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime localDateTime = review.getCreatedDate().toLocalDateTime();
+        int totalComment = commentRepository.findCommentByReviewId(review.getId()).size();
+
+        BlogsResponseModel blogsResponseModel = new BlogsResponseModel();
+        blogsResponseModel.setSlugBlog(review.getId().toString());
+        blogsResponseModel.setContent(review.getContent());
+        blogsResponseModel.setId(review.getId());
+//        blogsResponseModel.setCategoryId();
+        blogsResponseModel.setTitle(review.getTitle());
+        blogsResponseModel.setDateSubmitted(localDateTime.format(formatter));
+
+        BlogWithCategoryResponseModel result = new BlogWithCategoryResponseModel();
+
+        Span inventoryServiceLookup = tracer.nextSpan().name("CategoryServiceLookup");
+        log.info("Begin");
+        try (Tracer.SpanInScope isLookup = tracer.withSpanInScope(inventoryServiceLookup.start())) {
+            inventoryServiceLookup.tag("call", "category-service");
+            log.info("Begin 2");
+
+            CategoryResponse categoryResponse = webClientBuilder.build().get()
+                    .uri("http://category-service/api/category/{categoryCode}", review.getCategoryCode())
+                    .retrieve()
+                    .bodyToMono(CategoryResponse.class)
+                    .block();
+
+            log.info("Begin 3");
+            if (categoryResponse != null) {
+                blogsResponseModel.setCategoryId(categoryResponse.getId());
+                CategoriesResponseModel categoriesResponseModel = new CategoriesResponseModel();
+                categoriesResponseModel.setSlugCategory(categoryResponse.getCode());
+                categoriesResponseModel.setCategory(categoryResponse.getName());
+                categoriesResponseModel.setId(categoryResponse.getId());
+                result.setBlogsResponseModel(blogsResponseModel);
+                result.setCategoriesResponseModel(categoriesResponseModel);
+                result.setTotalComment(totalComment);
+                return result;
+            } else {
+                throw new IllegalArgumentException("Category is not exist, please try again later");
+            }
+        } finally {
+            inventoryServiceLookup.flush();
+        }
     }
 
 }
