@@ -33,3 +33,15 @@ scrape_configs:
       - targets: ['user-service:8080']
         labels:
           application: 'User Service Application'
+  - job_name: 'review_service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['review-service:8080']
+        labels:
+          application: 'Review Service Application'
+  - job_name: 'category_service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['category-service:8080']
+        labels:
+          application: 'Category Service Application'

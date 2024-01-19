@@ -50,6 +50,40 @@ services:
     command: -p 5433
     restart: unless-stopped
 
+  postgres-review:
+    container_name: postgres-review
+    image: postgres
+    environment:
+      POSTGRES_DB: review-service
+      POSTGRES_USER: danghung
+      POSTGRES_PASSWORD: password
+      PGDATA: /data/postgres
+    volumes:
+      - ./postgres-review:/data/postgres
+    expose:
+      - "5434"
+    ports:
+      - "5434:5434"
+    command: -p 5434
+    restart: unless-stopped
+
+  postgres-category:
+    container_name: postgres-category
+    image: postgres
+    environment:
+      POSTGRES_DB: category-service
+      POSTGRES_USER: danghung
+      POSTGRES_PASSWORD: password
+      PGDATA: /data/postgres
+    volumes:
+      - ./postgres-category:/data/postgres
+    expose:
+      - "5435"
+    ports:
+      - "5435:5435"
+    command: -p 5435
+    restart: unless-stopped
+
   ## Mongo Docker Compose Config
   mongo:
     container_name: mongo
@@ -217,6 +251,32 @@ services:
       - discovery-server
       - api-gateway
 
+  ## Review-Service Docker Compose Config
+  review-service:
+    container_name: review-service
+    image: danghungabt/review-service:latest
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-review:5434/review-service
+    depends_on:
+      - postgres-review
+      - discovery-server
+      - api-gateway
+
+  ## Category-Service Docker Compose Config
+  category-service:
+    container_name: category-service
+    image: danghungabt/category-service:latest
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-category:5435/category-service
+    depends_on:
+      - postgres-category
+      - discovery-server
+      - api-gateway
+
   ## Prometheus
   prometheus:
     image: prom/prometheus:v2.37.1
@@ -232,6 +292,8 @@ services:
       - order-service
       - notification-service
       - user-service
+      - review-service
+      - category-service
 
   grafana:
     image: grafana/grafana-oss:8.5.2

@@ -23,6 +23,8 @@
         <module>api-gateway</module>
         <module>notification-service</module>
         <module>user-service</module>
+        <module>review-service</module>
+        <module>category-service</module>
     </modules>
 
     <properties>

@@ -41,3 +41,5 @@ mongo-data
 /postgres-order/
 /grafana/
 /postgres-user
+/postgres-category
+/postgres-review
