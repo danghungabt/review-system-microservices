@@ -1,12 +1,17 @@
 package com.microservice.reviewservice.service;
 
+import brave.Span;
+import brave.Tracer;
+import com.microservice.reviewservice.dto.CategoryResponse;
 import com.microservice.reviewservice.dto.ReviewRequest;
 import com.microservice.reviewservice.dto.ReviewResponse;
 import com.microservice.reviewservice.model.Review;
 import com.microservice.reviewservice.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -16,11 +21,15 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
 
-    public void insert(ReviewRequest reviewRequest){
+    private final WebClient.Builder webClientBuilder;
+    private final Tracer tracer;
+
+    public String insert(ReviewRequest reviewRequest){
         Review review = new Review();
         review.setTitle(reviewRequest.getTitle());
         review.setContent(reviewRequest.getContent());
@@ -29,7 +38,29 @@ public class ReviewService {
         review.setCategoryCode(reviewRequest.getCategoryCode());
         review.setCreatedDate(new Timestamp(System.currentTimeMillis()));
 
-        reviewRepository.save(review);
+        Span inventoryServiceLookup = tracer.nextSpan().name("CategoryServiceLookup");
+        log.info("Begin");
+        try (Tracer.SpanInScope isLookup = tracer.withSpanInScope(inventoryServiceLookup.start())) {
+            inventoryServiceLookup.tag("call", "category-service");
+            log.info("Begin 2");
+
+            CategoryResponse categoryResponse = webClientBuilder.build().get()
+                    .uri("http://category-service/api/category/{categoryCode}", reviewRequest.getCategoryCode())
+                    .retrieve()
+                    .bodyToMono(CategoryResponse.class)
+                    .block();
+
+            log.info("Begin 3");
+            log.info(categoryResponse.getCode());
+            if(categoryResponse != null) {
+                reviewRepository.save(review);
+                return "Review Was Posted Successfully";
+            } else {
+                throw new IllegalArgumentException("Category is not exist, please try again later");
+            }
+        } finally {
+            inventoryServiceLookup.flush();
+        }
     }
 
     public ReviewResponse findOneById(Long id) {
