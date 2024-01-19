@@ -1,5 +1,7 @@
 package com.microservice.reviewservice.controller;
 
+import com.microservice.reviewservice.dto.CommentRequest;
+import com.microservice.reviewservice.dto.CommentResponse;
 import com.microservice.reviewservice.dto.ReviewRequest;
 import com.microservice.reviewservice.dto.ReviewResponse;
 import com.microservice.reviewservice.service.ReviewService;
@@ -19,6 +21,13 @@ import java.util.concurrent.CompletableFuture;
 public class ReviewController {
     private final ReviewService reviewService;
 
+    @PostMapping("/comment")
+    @ResponseStatus(HttpStatus.CREATED)
+    public String insertComment(@RequestBody CommentRequest commentRequest){
+        reviewService.insertComment(commentRequest);
+        return "Inserted";
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @CircuitBreaker(name = "category", fallbackMethod = "fallbackMethod")
@@ -30,6 +39,12 @@ public class ReviewController {
 
     public CompletableFuture<String> fallbackMethod(ReviewRequest reviewRequest, RuntimeException runtimeException) {
         return CompletableFuture.supplyAsync(() -> "Oops! Something went wrong, please post review after some time!");
+    }
+
+    @GetMapping("/comment")
+    @ResponseStatus(HttpStatus.OK)
+    public List<CommentResponse> findAllComment(){
+        return reviewService.findAllComment();
     }
 
     @GetMapping("/{reviewId}")

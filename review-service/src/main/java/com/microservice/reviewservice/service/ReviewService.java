@@ -2,10 +2,10 @@ package com.microservice.reviewservice.service;
 
 import brave.Span;
 import brave.Tracer;
-import com.microservice.reviewservice.dto.CategoryResponse;
-import com.microservice.reviewservice.dto.ReviewRequest;
-import com.microservice.reviewservice.dto.ReviewResponse;
+import com.microservice.reviewservice.dto.*;
+import com.microservice.reviewservice.model.Comment;
 import com.microservice.reviewservice.model.Review;
+import com.microservice.reviewservice.repository.CommentRepository;
 import com.microservice.reviewservice.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,11 +25,12 @@ import java.util.List;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
+    private final CommentRepository commentRepository;
 
     private final WebClient.Builder webClientBuilder;
     private final Tracer tracer;
 
-    public String insert(ReviewRequest reviewRequest){
+    public String insert(ReviewRequest reviewRequest) {
         Review review = new Review();
         review.setTitle(reviewRequest.getTitle());
         review.setContent(reviewRequest.getContent());
@@ -52,7 +53,7 @@ public class ReviewService {
 
             log.info("Begin 3");
             log.info(categoryResponse.getCode());
-            if(categoryResponse != null) {
+            if (categoryResponse != null) {
                 reviewRepository.save(review);
                 return "Review Was Posted Successfully";
             } else {
@@ -82,7 +83,39 @@ public class ReviewService {
                 .build();
     }
 
-    public List<ReviewResponse> findAll(){
+    public List<ReviewResponse> findAll() {
         return reviewRepository.findAll().stream().map(this::mapToReviewResponse).toList();
+    }
+
+    public List<CommentResponse> findAllComment() {
+        return commentRepository.findAll().stream().map(this::mapToCommentResponse).toList();
+    }
+
+    private CommentResponse mapToCommentResponse(Comment comment) {
+        return  CommentResponse.builder()
+                .name(comment.getName())
+                .email(comment.getEmail())
+                .reviewId(comment.getReview().getId())
+                .parentId(comment.getParentId())
+                .content(comment.getContent())
+                .website(comment.getWebsite())
+                .id(comment.getId())
+                .build();
+    }
+
+    public void insertComment(CommentRequest commentRequest) {
+        Review review = reviewRepository.findById(commentRequest.getReviewId()).isPresent() ?
+                reviewRepository.findById(commentRequest.getReviewId()).get()
+                : null;
+
+        Comment comment = new Comment();
+        comment.setName(commentRequest.getName());
+        comment.setEmail(commentRequest.getEmail());
+        comment.setContent(commentRequest.getContent());
+        comment.setParentId(commentRequest.getParentId());
+        comment.setWebsite(commentRequest.getWebsite());
+        comment.setReview(review);
+
+        commentRepository.save(comment);
     }
 }
