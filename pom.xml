@@ -74,7 +74,7 @@
                     <target>16</target>
                 </configuration>
             </plugin>
-            <!--<plugin>
+            <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
                 <version>3.2.1</version>
@@ -84,7 +84,7 @@
                     </from>
                     <to><image>registry.hub.docker.com/danghungabt/${project.artifactId}</image></to>
                 </configuration>
-            </plugin>-->
+            </plugin>
         </plugins>
     </build>
 

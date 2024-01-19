@@ -44,8 +44,8 @@ public class CategoryService {
     private CategoryResponse maoToCategoryResponse(Category item) {
         return CategoryResponse.builder()
                 .id(item.getId())
-                .code(item.getCode())
-                .name(item.getName())
+                .slugCategory(item.getCode())
+                .category(item.getName())
                 .build();
     }
 
