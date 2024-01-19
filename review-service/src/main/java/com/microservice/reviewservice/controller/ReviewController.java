@@ -1,9 +1,7 @@
 package com.microservice.reviewservice.controller;
 
-import com.microservice.reviewservice.dto.CommentRequest;
-import com.microservice.reviewservice.dto.CommentResponse;
-import com.microservice.reviewservice.dto.ReviewRequest;
-import com.microservice.reviewservice.dto.ReviewResponse;
+import com.microservice.reviewservice.dto.*;
+import com.microservice.reviewservice.dto.response.MiniBlogWithCategoryResponseModel;
 import com.microservice.reviewservice.service.ReviewService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -13,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -47,6 +46,15 @@ public class ReviewController {
         return reviewService.findAllComment();
     }
 
+    @GetMapping("/client")
+    @ResponseStatus(HttpStatus.OK)
+//    @CircuitBreaker(name = "category")
+//    @TimeLimiter(name = "category")
+//    @Retry(name = "category")
+    public PagingModel<MiniBlogWithCategoryResponseModel> findAllClientWithPageablePlus(@RequestParam Map<String, Object> params,
+                                                                                        @RequestParam int page){
+        return reviewService.findAllClientWithPageablePlus(params, page);
+    }
     @GetMapping("/{reviewId}")
     @ResponseStatus(HttpStatus.OK)
     public ReviewResponse findOndById(@PathVariable Long reviewId){
